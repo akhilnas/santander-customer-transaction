@@ -10,6 +10,9 @@ xgboost = "*"
 scikit-learn = "*"
 torch = "*"
 matplotlib = "*"
+pylint = "*"
+optuna = "*"
+plotly = "==5.3.1"
 
 [dev-packages]
 

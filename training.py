@@ -35,15 +35,106 @@ import pickle
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-def train():
+def train(X_train, X_valid, y_train, y_valid, hyperparameter = False, *args):
     
-    ### Model Setup & Training ###
+    ### Model Setup & Training ###    
     
-    # Model instantiation
+    # Set up Parameters of Training    
+    for ar in args:            
+        opt = ar              
 
     # GPU Parameter
     device_method = 'gpu_hist' if torch.cuda.is_available() else 'auto'
     
+    # Model instantiation
+    
+    # Set an experiment name, which must be unique and case sensitive.
+    mlflow.set_experiment("Santander XGBoost")
+    
+    with mlflow.start_run():
+        model_xgboost = xgboost.XGBClassifier(eval_metric='auc',
+                                            use_label_encoder=False,
+                                            tree_method = device_method,
+                                            verbosity=1, **opt)
+        # Validation Set
+        eval_set = [(X_valid, y_valid)]
+
+        # Creating the DMatrix
+        d_matrix = xgboost.DMatrix(data=X_train, label=y_train)
+
+        xgb_param = model_xgboost.get_xgb_params()
+
+        # Number of Cross Validation Folds
+        cv_folds = 10
+        early_stopping_rounds = 10
+        # Cross-validation with 10 folds
+        cvresult = xgboost.cv(xgb_param, d_matrix, num_boost_round=model_xgboost.get_params()['n_estimators'], 
+                    nfold=cv_folds, metrics='auc', early_stopping_rounds=early_stopping_rounds, verbose_eval=False)
+
+        model_xgboost.set_params(n_estimators=cvresult.shape[0])
+        
+        # Training
+        model_xgboost.fit(X_train,
+                    y_train,
+                    early_stopping_rounds=10,
+                    eval_set=eval_set,                  
+                    verbose=False)
+        
+        # Print Results
+        if hyperparameter == False:
+            print("AUC Train Mean Score: {:.4f} with Standard Deviation {:.4f}\nAUC Valid Mean Score: \
+                {:.4f} with Standard Deviation {:.4f}".format(cvresult['train-auc-mean'].iloc[-1],
+                                                        cvresult['train-auc-std'].iloc[-1], 
+                                                        cvresult['test-auc-mean'].iloc[-1], 
+                                                        cvresult['test-auc-std'].iloc[-1]))
+        
+        # Print Results on Test-Data
+        y_train_pred = model_xgboost.predict_proba(X_train)[:,1]
+        y_valid_pred = model_xgboost.predict_proba(X_valid)[:,1]
+        
+        # AUC Scores
+        auc_train = roc_auc_score(y_train, y_train_pred)
+        auc_valid = roc_auc_score(y_valid, y_valid_pred)
+        
+
+        print("AUC Train: {:.4f}\nAUC Test: {:.4f}".format(auc_train, auc_valid))     
+     
+        
+        # MLflow Parameters
+        mlflow.log_param('n_estimators', cvresult.shape[0])
+        mlflow.log_param('learning_rate', opt['learning_rate'])
+        mlflow.log_param('max_depth', opt['max_depth'])
+        mlflow.log_param('subsample', opt['subsample'])
+        mlflow.log_param('colsample_bytree', opt['colsample_bytree'])
+        # MLflow Metrics
+        mlflow.log_metric("AUC Train", auc_train)
+        mlflow.log_metric("AUC Valid", auc_valid)
+
+        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+        # Model registry does not work with file store
+        if tracking_url_type_store != "file":
+
+            # Register the model
+            # There are other ways to use the Model Registry, which depends on the use case,
+            # please refer to the doc for more information:
+            # https://mlflow.org/docs/latest/model-registry.html#api-workflow
+            mlflow.xgboost.log_model(model_xgboost, "model", registered_model_name="XGBoostModel")
+        else:
+            mlflow.xgboost.log_model(model_xgboost, "model")
+
+    # Feature Importance Plot
+    if hyperparameter == False:
+        ax = plot_importance(model_xgboost, max_num_features=15, importance_type='gain')  
+        ax.figure.savefig('feature_importance.png')
+    
+        # Pickle the model
+        file_name = "xgb_cls.pkl"
+    
+        # save
+        pickle.dump(model_xgboost, open(file_name, "wb"))   
+    
+    return y_valid_pred
     
     
 
@@ -82,101 +173,18 @@ if __name__=='__main__':
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
     X_train.shape, X_valid.shape, y_train.shape, y_valid.shape
     
-    ### Model Setup & Training ###
+    ## Training and 
+    # Call Training Function & Pass Training Parameters
     
-    # Model instantiation
-
-    # GPU Parameter
+    xgboost_params = {
+        "learning_rate": opt.learning_rate,
+        "n_estimators": 5000,
+        "max_depth": opt.max_depth, 
+        "subsample": opt.subsample,
+        "colsample_bytree": opt.colsample_bytree,
+        "random_state": 1121217
+    }
+    _ = train(X_train, X_valid, y_train, y_valid, False, xgboost_params) 
     
-    device_method = 'gpu_hist' if torch.cuda.is_available() else 'auto'
     
-    # enable auto logging
-    #mlflow.xgboost.autolog()
-    
-    with mlflow.start_run():
-        model_xgboost = xgboost.XGBClassifier(learning_rate=opt.learning_rate,
-                                            max_depth=opt.max_depth,
-                                            n_estimators=5000,
-                                            subsample=opt.subsample,
-                                            colsample_bytree=opt.colsample_bytree,
-                                            eval_metric='auc',
-                                            use_label_encoder=False,
-                                            tree_method = device_method,
-                                            verbosity=1)
-        # Validation Set
-        eval_set = [(X_valid, y_valid)]
-
-        # Creating the DMatrix
-        d_matrix = xgboost.DMatrix(data=X_train, label=y_train)
-
-        xgb_param = model_xgboost.get_xgb_params()
-
-        # Number of Cross Validation Folds
-        cv_folds = 10
-        early_stopping_rounds = 10
-        # Cross-validation with 10 folds
-        cvresult = xgboost.cv(xgb_param, d_matrix, num_boost_round=model_xgboost.get_params()['n_estimators'], 
-                    nfold=cv_folds, metrics='auc', early_stopping_rounds=early_stopping_rounds, verbose_eval=False)
-
-        model_xgboost.set_params(n_estimators=cvresult.shape[0])
-        
-        # Training
-        model_xgboost.fit(X_train,
-                    y_train,
-                    early_stopping_rounds=10,
-                    eval_set=eval_set,                  
-                    verbose=False)
-        
-        # Print Results
-        print("AUC Train Mean Score: {:.4f} with Standard Deviation {:.4f}\nAUC Valid Mean Score: \
-            {:.4f} with Standard Deviation {:.4f}".format(cvresult['train-auc-mean'].iloc[-1],
-                                                        cvresult['train-auc-std'].iloc[-1], 
-                                                        cvresult['test-auc-mean'].iloc[-1], 
-                                                        cvresult['test-auc-std'].iloc[-1]))
-        
-        # Print Results on Test-Data
-        y_train_pred = model_xgboost.predict_proba(X_train)[:,1]
-        y_valid_pred = model_xgboost.predict_proba(X_valid)[:,1]
-        
-        # AUC Scores
-        auc_train = roc_auc_score(y_train, y_train_pred)
-        auc_valid = roc_auc_score(y_valid, y_valid_pred)
-        
-
-        print("AUC Train: {:.4f}\nAUC Test: {:.4f}".format(auc_train, auc_valid))     
-     
-        
-        # MLflow Parameters
-        mlflow.log_param('n_estimators', cvresult.shape[0])
-        mlflow.log_param('learning_rate', opt.learning_rate)
-        mlflow.log_param('max_depth', opt.max_depth)
-        mlflow.log_param('subsample', opt.subsample)
-        mlflow.log_param('colsample_bytree', opt.colsample_bytree)
-        # MLflow Metrics
-        mlflow.log_metric("AUC Train", auc_train)
-        mlflow.log_metric("AUC Valid", auc_valid)
-
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
-
-        # Model registry does not work with file store
-        if tracking_url_type_store != "file":
-
-            # Register the model
-            # There are other ways to use the Model Registry, which depends on the use case,
-            # please refer to the doc for more information:
-            # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            mlflow.xgboost.log_model(model_xgboost, "model", registered_model_name="XGBoostModel")
-        else:
-            mlflow.xgboost.log_model(model_xgboost, "model")
-
-    # Feature Importance Plot
-    ax = plot_importance(model_xgboost, max_num_features=15, importance_type='gain')  
-    ax.figure.savefig('feature_importance.png')
-    
-    # Pickle the model
-    file_name = "xgb_cls.pkl"
-    
-    # save
-    pickle.dump(model_xgboost, open(file_name, "wb"))
-        
     

@@ -22,3 +22,5 @@ COPY data /Code/data
 
 # Install Python Libraries
 RUN pip install -r requirements.txt
+
+# Necessary Commands

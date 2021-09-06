@@ -1,0 +1,4 @@
+artifact_location: file:///home/akhil/Projects/Santander-Customer-Transaction/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: Santander XGBoost
