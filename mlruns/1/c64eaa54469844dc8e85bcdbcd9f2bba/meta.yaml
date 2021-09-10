@@ -1,0 +1,15 @@
+artifact_uri: file:///home/akhil/Projects/Santander-Customer-Transaction/mlruns/1/c64eaa54469844dc8e85bcdbcd9f2bba/artifacts
+end_time: 1631066449307
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: c64eaa54469844dc8e85bcdbcd9f2bba
+run_uuid: c64eaa54469844dc8e85bcdbcd9f2bba
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1631066266603
+status: 3
+tags: []
+user_id: akhil

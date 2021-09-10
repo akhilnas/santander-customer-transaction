@@ -2,6 +2,7 @@
 
 # Handle Arguments for File
 import argparse
+import os
 
 # General Data Manipulation Libraries
 import numpy as np
@@ -14,13 +15,11 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-import torch
+import GPUtil
 
 # Plotting Tools
 import matplotlib.pyplot as plt
 from xgboost import plot_importance
-#from optuna.visualization import plot_optimization_history
-#from optuna.visualization import plot_param_importances
 
 # MLflow
 from urllib.parse import urlparse
@@ -44,7 +43,7 @@ def train(X_train, X_valid, y_train, y_valid, hyperparameter = False, *args):
         opt = ar              
 
     # GPU Parameter
-    device_method = 'gpu_hist' if torch.cuda.is_available() else 'auto'
+    device_method = 'gpu_hist' if (len(GPUtil.getAvailable()) != 0) else 'auto'
     
     # Model instantiation
     
@@ -136,7 +135,11 @@ def train(X_train, X_valid, y_train, y_valid, hyperparameter = False, *args):
     
     return y_valid_pred
     
-    
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)    
 
 if __name__=='__main__':
     
@@ -146,13 +149,14 @@ if __name__=='__main__':
     parser.add_argument("--max_depth", type=int, default=5, help="Maximum Depth of of each tree in the XGBoost Classifier")
     parser.add_argument("--subsample", type=float, default=0.5, help="The sampling percentage of the Training data used to create a Tree.")
     parser.add_argument("--colsample_bytree", type=float, default=0.5, help="Percentage of Features to be used while building a tree in the model.") 
+    parser.add_argument("--data_dir", type=dir_path, default='/data', help="Path to Data Directory.") 
     opt = parser.parse_args()
     print(opt)
 
     ### Data Import ###
 
-    # Load Data
-    data_dir = './data'  
+    # Load Data    
+    data_dir = opt.data_dir
     try:
         df_train = pd.read_csv(data_dir + '/train.csv')
     except:
@@ -160,8 +164,10 @@ if __name__=='__main__':
     
     
     # Check for GPU
-    if torch.cuda.is_available():
+    if (len(GPUtil.getAvailable()) != 0):
         print("GPU found. Running on GPU.")
+    else:
+        print("Running on CPU.")
     
     ### Data Preperation ###
     

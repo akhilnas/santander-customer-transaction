@@ -8,11 +8,11 @@ numpy = "*"
 mlflow = "*"
 xgboost = "*"
 scikit-learn = "*"
-torch = "*"
 matplotlib = "*"
 pylint = "*"
 optuna = "*"
 plotly = "==5.3.1"
+gputil = "*"
 
 [dev-packages]
 

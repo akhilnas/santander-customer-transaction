@@ -14,7 +14,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-import torch
+import GPUtil
 
 # Hyper-parameter Optimization
 import optuna
@@ -73,7 +73,7 @@ if __name__=='__main__':
     
     
     # Check for GPU
-    if torch.cuda.is_available():
+    if (len(GPUtil.getAvailable()) != 0):
         print("GPU found. Running on GPU.")
     
     ### Data Preperation ###
