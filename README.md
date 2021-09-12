@@ -16,7 +16,7 @@ This Project aims to solve the stated business problem with the help of the XGBo
 
 ## About the Data <a name="Data"></a>
 
-The Data consists of 200 anonymized features, a ID code column and a binary taget variable. The data is already provisioned in the format of a train and test csv files.
+The Data consists of 200 anonymized features, a ID code column and a binary taget variable. The data is already provisioned in the format of train and test csv files.
 
 
 ## Installation & Usage <a name="install"></a>
