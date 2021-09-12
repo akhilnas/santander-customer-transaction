@@ -11,7 +11,8 @@ The Dataset is obtained courtesy of Santander as a part of the Kaggle competitio
 
 ## Introduction <a name="Introduction"></a>
 
-This Project aims to solve the stated business problem with the help of the XGBoost algorithm. The overall approach to this problem 
+This Project aims to solve the stated business problem with the help of the XGBoost algorithm. The overall approach to this problem was to fix the model and instead perform hyperparamter tuning and feature engineering and selection.
+
 
 ## About the Data <a name="Data"></a>
 
@@ -40,9 +41,28 @@ The container is built as per the specification of using all local available gpu
 
 The two important files are *training.py* and *hyperparameter.py*. The training module exists in the first file while the hyperparamter tuning using Optuna is performed in the second file.
 
-The *predict.py* file is used to generate predictions using on the saved model.
+The *predict.py* file is used to generate predictions using on the saved model. 
 
+The folder structure is as follows (For git clone).
 
+```
+project
+│   Dockerfile
+|   feature_importance.png
+|   hyperparameter.py
+|   LICENSE
+|   Pipfile
+|   Pipfile.lock
+|   predict.csv
+|   predict.py
+│   README.md
+|   requirements.txt
+|   training.py
+|   xgb_cls.pkl    
+│
+└───mlruns
+│   │   
+```
 ## Future Work <a name="Future-Work"></a>
 
 The Project currently requires either a powerful local machine on the part of the user or requires the usage of cloud compute resources which leads to more manual work. Also there is many instances along this project lifecycle that human intervention is required.
