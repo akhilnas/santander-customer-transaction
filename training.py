@@ -49,6 +49,7 @@ def train(X_train, X_valid, y_train, y_valid, hyperparameter = False, *args):
     
     # Set an experiment name, which must be unique and case sensitive.
     mlflow.set_experiment("Santander XGBoost")
+    print('Beginning MLflow Experiment')
     
     with mlflow.start_run():
         model_xgboost = xgboost.XGBClassifier(eval_metric='auc',
@@ -73,6 +74,7 @@ def train(X_train, X_valid, y_train, y_valid, hyperparameter = False, *args):
         model_xgboost.set_params(n_estimators=cvresult.shape[0])
         
         # Training
+        print('Training')
         model_xgboost.fit(X_train,
                     y_train,
                     early_stopping_rounds=10,
@@ -177,6 +179,7 @@ if __name__=='__main__':
 
     # We are performing a 80-20 split for Training and Validation
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
+    print('Data Split Performed')
     X_train.shape, X_valid.shape, y_train.shape, y_valid.shape
     
     ## Training and 
