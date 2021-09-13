@@ -13,6 +13,8 @@ The Dataset is obtained courtesy of Santander as a part of the Kaggle competitio
 
 This Project aims to solve the stated business problem with the help of the XGBoost algorithm. The overall approach to this problem was to fix the model and instead perform hyperparamter tuning and feature engineering and selection.
 
+The preliminary analysis and execution of Code was done in Kaggle Notebooks. (<a href=https://www.kaggle.com/akhilnasser/santander-customer-transaction-training>Link</a>)
+
 
 ## About the Data <a name="Data"></a>
 
