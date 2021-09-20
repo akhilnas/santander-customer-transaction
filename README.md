@@ -60,7 +60,10 @@ project
 │   README.md
 |   requirements.txt
 |   training.py
-|   xgb_cls.pkl    
+|   xgb_cls.pkl
+|   main_script.sh
+|   santander-customer-transaction-training-2.ipynb
+|   santander-customer-transaction-training.ipynb    
 │
 └───mlruns
 │   │   
