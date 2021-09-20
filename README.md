@@ -37,7 +37,7 @@ If instead you would like to use the docker image(<a href=https://hub.docker.com
 
 ```
 docker pull akhiln/santander:1.0
-docker run --gpus all -it -p 5000:5000 akhiln/santander:1.0
+docker run --gpus all -it -p 5000:5000 akhiln/santander:aws-ecs
 ```
 The container is built as per the specification of using all local available gpus, the port 5000 is mapped to the respective container port (MLFlow UI) and the -it flag tells docker that it should open an interactive container instance. To edit this command as per requirements please refer to Docker docs.
 
