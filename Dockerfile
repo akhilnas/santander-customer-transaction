@@ -30,6 +30,7 @@ COPY requirements.txt /Code/requirements.txt
 COPY training.py /Code/training.py
 COPY hyperparameter.py /Code/hyperparameter.py
 COPY data /data
+COPY main_script.sh /Code/main_script.sh
 
 # Install Python Libraries
 RUN pip3 install --upgrade pip==21.2.4
@@ -39,4 +40,5 @@ RUN pip3 install -r /Code/requirements.txt
 EXPOSE 5000
 
 # Necessary Commands
-CMD ["python3", "/Code/hyperparameter.py"]
+RUN chmod +x /Code/main_script.sh
+CMD ./Code/main_script.sh
